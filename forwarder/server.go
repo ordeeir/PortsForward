@@ -151,7 +151,7 @@ func listenPort(ctx context.Context, port int, dh string, dp int, bw int64) {
 //honestly, I just copied the v... interface{} from the log package definition so there you go
 func debuglog(msg string, v ...interface{}) {
 	if Config.logToConsole || Config.logFile != "" {
-		log.Printf(msg, v...)
+		log.Printf(msg, v)
 	}
 }
 
