@@ -12,7 +12,7 @@ CMD ["/bin/sh" ,"-c" ,"go mod download"]
 
 RUN go build -o ./porforward
 
-EXPOSE 444
+EXPOSE 443
 
 #CMD tail -f /dev/null
 
