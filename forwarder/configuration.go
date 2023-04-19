@@ -1,9 +1,8 @@
 package forwarder
 
 import (
-	"flag"
-	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -43,56 +42,44 @@ var Config Configuration
 
 //ParseConfig reads the command line arguments and sets the global Configuration object from those. Also checks the arguments make basic sense.
 func ParseConfig() {
-	flagSet := flag.NewFlagSet("goforward", flag.ExitOnError)
-	flagSet.SetOutput(os.Stdout)
 
-	defaultBandwidth := flagSet.Int("default-bandwidth", 0, "Default Bandwidth. Required.")
-	_ = defaultBandwidth
+	srcPortPtr := 0
 
-	srcPortPtr := flagSet.Int("sp", 0, "Source port for incoming connections. Required.")
 	//here I was trying to create a shorter form of source port config option, while having the previous one be longer. the default package does not really support that, so dropped it.
 	//	flagSet.IntVar(srcPortPtr, "sp", -1, "Source port for incoming connections.")
 
-	dstPortPtr := flagSet.Int("dp", 0, "Destination port to forward incoming connections. Required.")
-	dstHostPtr := flagSet.String("dh", "", "Destination host to forward incoming connections. Required.")
+	dstPortPtr := 0
+	dstHostPtr := ""
 
-	mirrorUpPortPtr := flagSet.Int("mup", 0, "Mirror port to forward incoming connection upstream data. Optional. Required if upstream mirror host is defined.")
-	mirrorUpHostPtr := flagSet.String("muh", "", "Mirror host to forward incoming connection upstream traffic. Optional.")
+	mirrorUpPortPtr := 0
 
-	mirrorDownPortPtr := flagSet.Int("mdp", 0, "Mirror port to forward incoming connection downstream data. Optional. Required if downstream mirror host is defined.")
-	mirrorDownHostPtr := flagSet.String("mdh", "", "Mirror host to forward incoming connection downstream traffic. Optional.")
+	mirrorUpHostPtr := ""
 
-	dataUpFilePtr := flagSet.String("duf", "", "If defined, will write upstream data to this file.")
-	dataDownFilePtr := flagSet.String("ddf", "", "If defined, will write downstream data to this file.")
+	mirrorDownPortPtr := 0
+	mirrorDownHostPtr := ""
 
-	logFilePtr := flagSet.String("logf", "", "If defined, will write debug log info to this file.")
-	logToConsolePtr := flagSet.Bool("logc", false, "If defined, write debug log info to console.")
-	bufferSizePtr := flagSet.Int("bufs", 1024, "Size of read/write buffering.")
+	dataUpFilePtr := ""
+	dataDownFilePtr := ""
 
-	//the first argument is the name of the executable, so if the command was launched without parameters, print the help
-	if len(os.Args) == 1 {
-		fmt.Println("Usage: " + os.Args[0] + " [options]")
-		fmt.Println(" Options:")
-		flagSet.PrintDefaults()
-		os.Exit(0)
-	}
+	logFilePtr := ""
 
-	flagSet.Parse(os.Args[1:])
+	logToConsolePtr := false
+	bufferSizePtr := 1024
 
-	Config.srcPort = *srcPortPtr
-	Config.dstPort = *dstPortPtr
-	Config.dstHost = *dstHostPtr
-	Config.mirrorUpPort = *mirrorUpPortPtr
-	Config.mirrorUpHost = *mirrorUpHostPtr
-	Config.mirrorDownPort = *mirrorDownPortPtr
-	Config.mirrorDownHost = *mirrorDownHostPtr
-	Config.dataDownFile = *dataDownFilePtr
-	Config.dataUpFile = *dataUpFilePtr
-	Config.logFile = *logFilePtr
-	Config.logToConsole = *logToConsolePtr
-	Config.bufferSize = *bufferSizePtr
+	Config.srcPort = srcPortPtr
+	Config.dstPort = dstPortPtr
+	Config.dstHost = dstHostPtr
+	Config.mirrorUpPort = mirrorUpPortPtr
+	Config.mirrorUpHost = mirrorUpHostPtr
+	Config.mirrorDownPort = mirrorDownPortPtr
+	Config.mirrorDownHost = mirrorDownHostPtr
+	Config.dataDownFile = dataDownFilePtr
+	Config.dataUpFile = dataUpFilePtr
+	Config.logFile = logFilePtr
+	Config.logToConsole = logToConsolePtr
+	Config.bufferSize = bufferSizePtr
 
-	var errors = ""
+	//var errors = ""
 	if Config.srcPort < 1 || Config.srcPort > 65535 {
 		//errors += "You need to specify source port in range 1-65535.\n"
 	}
@@ -126,13 +113,12 @@ func ParseConfig() {
 
 	go watchFileAndRun("portsforward.conf", updatePortsForward)
 
-	if len(errors) > 0 {
-		fmt.Print(errors)
-		fmt.Println()
-		fmt.Print("Usage: " + os.Args[0] + " [options]")
-		flagSet.PrintDefaults()
-		os.Exit(1)
-	}
+	// if len(errors) > 0 {
+	// 	fmt.Print(errors)
+	// 	fmt.Println()
+	// 	fmt.Print("Usage: " + os.Args[0] + " [options]")
+	// 	os.Exit(1)
+	// }
 }
 
 /*
@@ -233,6 +219,9 @@ func watchFileAndRun(filePath string, fn func()) {
 		stat, _ := os.Stat(filePath)
 		//checkErr(err)
 		if stat.Size() != initialStat.Size() || stat.ModTime() != initialStat.ModTime() {
+
+			log.Print("portsforward.conf changed.")
+
 			fn()
 			initialStat, _ = os.Stat(filePath)
 			//checkErr(err)

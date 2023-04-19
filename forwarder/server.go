@@ -1,6 +1,7 @@
 package forwarder
 
 import (
+	"PortsForward/bandwidth"
 	"bufio"
 	"context"
 	"fmt"
@@ -8,7 +9,6 @@ import (
 	"log"
 	"net"
 	"os"
-	"proxy/bandwidth"
 	"strconv"
 )
 

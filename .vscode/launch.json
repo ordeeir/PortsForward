@@ -9,7 +9,7 @@
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "C:\\Go_Projects\\proxy\\main.go",
+            "program": "C:\\Go_Projects\\PortsForward\\main.go",
             "env": {},
             "args": ["--default-bandwidth", "1000"]
         }

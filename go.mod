@@ -1,5 +1,5 @@
-module proxy
+module PortsForward
 
-go 1.17
+go 1.18
 
-require golang.org/x/time v0.3.0 // indirect
+require golang.org/x/time v0.3.0
